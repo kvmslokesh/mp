@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDoS Attack Detection</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>DDoS Attack Detection System</h1>
+        
+        <!-- Traffic Input Form -->
+        <form id="trafficForm">
+            <label for="dt">DT:</label>
+            <input type="number" id="dt" name="dt" required><br>
+
+            <label for="switch">Switch:</label>
+            <input type="number" id="switch" name="switch" required><br>
+
+            <label for="src">Source IP:</label>
+            <input type="text" id="src" name="src" required><br>
+
+            <label for="dst">Destination IP:</label>
+            <input type="text" id="dst" name="dst" required><br>
+
+            <label for="pktcount">Packet Count:</label>
+            <input type="number" id="pktcount" name="pktcount" required><br>
+
+            <label for="bytecount">Byte Count:</label>
+            <input type="number" id="bytecount" name="bytecount" required><br>
+
+            <label for="dur">Duration:</label>
+            <input type="number" id="dur" name="dur" required><br>
+
+            <label for="dur_nsec">Duration in NSEC:</label>
+            <input type="number" id="dur_nsec" name="dur_nsec" required><br>
+
+            <label for="tot_dur">Total Duration:</label>
+            <input type="number" id="tot_dur" name="tot_dur" required><br>
+
+            <label for="flows">Flows:</label>
+            <input type="number" id="flows" name="flows" required><br>
+
+            <label for="packetins">Packet In:</label>
+            <input type="number" id="packetins" name="packetins" required><br>
+
+            <label for="pktperflow">Packets per Flow:</label>
+            <input type="number" id="pktperflow" name="pktperflow" required><br>
+
+            <label for="byteperflow">Bytes per Flow:</label>
+            <input type="number" id="byteperflow" name="byteperflow" required><br>
+
+            <label for="pktrate">Packet Rate:</label>
+            <input type="number" id="pktrate" name="pktrate" required><br>
+
+            <label for="Pairflow">Pairflow:</label>
+            <input type="number" id="Pairflow" name="Pairflow" required><br>
+
+            <label for="Protocol">Protocol:</label>
+            <input type="text" id="Protocol" name="Protocol" required><br>
+
+            <label for="port_no">Port No:</label>
+            <input type="number" id="port_no" name="port_no" required><br>
+
+            <label for="tx_bytes">TX Bytes:</label>
+            <input type="number" id="tx_bytes" name="tx_bytes" required><br>
+
+            <label for="rx_bytes">RX Bytes:</label>
+            <input type="number" id="rx_bytes" name="rx_bytes" required><br>
+
+            <label for="tx_kbps">TX kbps:</label>
+            <input type="number" id="tx_kbps" name="tx_kbps" required><br>
+
+            <label for="rx_kbps">RX kbps:</label>
+            <input type="number" id="rx_kbps" name="rx_kbps" required><br>
+
+            <label for="tot_kbps">Total kbps:</label>
+            <input type="number" id="tot_kbps" name="tot_kbps" required><br>
+
+            <button type="submit">Check for Attack</button>
+        </form>
+
+        <!-- Prediction Results -->
+        <div id="result" style="display:none;">
+            <h2>Prediction Results:</h2>
+            <p id="cnnResult"></p>
+            <p id="dlResult"></p>
+        </div>
+    </div>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Script to Handle Form Submission and Display Predictions -->
+    <script>
+        $(document).ready(function() {
+            // Form submission handler
+            $('#trafficForm').on('submit', function(e) {
+                e.preventDefault();  // Prevent default form submission
+
+                // Collect data from the form
+                const data = {
+                    "dt": $('#dt').val(),
+                    "switch": $('#switch').val(),
+                    "src": $('#src').val(),
+                    "dst": $('#dst').val(),
+                    "pktcount": $('#pktcount').val(),
+                    "bytecount": $('#bytecount').val(),
+                    "dur": $('#dur').val(),
+                    "dur_nsec": $('#dur_nsec').val(),
+                    "tot_dur": $('#tot_dur').val(),
+                    "flows": $('#flows').val(),
+                    "packetins": $('#packetins').val(),
+                    "pktperflow": $('#pktperflow').val(),
+                    "byteperflow": $('#byteperflow').val(),
+                    "pktrate": $('#pktrate').val(),
+                    "Pairflow": $('#Pairflow').val(),
+                    "Protocol": $('#Protocol').val(),
+                    "port_no": $('#port_no').val(),
+                    "tx_bytes": $('#tx_bytes').val(),
+                    "rx_bytes": $('#rx_bytes').val(),
+                    "tx_kbps": $('#tx_kbps').val(),
+                    "rx_kbps": $('#rx_kbps').val(),
+                    "tot_kbps": $('#tot_kbps').val()
+                };
+
+                // Send data to the Flask backend
+                $.ajax({
+                    url: '/predict',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        // Display the prediction results
+                        const cnnAttack = response.cnn_attack === 1 ? 'malicious' : 'benign';
+                        //const dlAttack = response.dl_attack === 1 ? 'malicious' : 'benign';
+                        
+                        /*const cnnAttack = response.cnn_attack === 0 ? 'no attack' :
+                        response.cnn_attack === 1 ? 'malicious' :
+                        response.cnn_attack === 2 ? 'benign';
+        
+                        const dlAttack = response.dl_attack === 0 ? 'no attack' :
+                        response.dl_attack === 1 ? 'malicious' :
+                        response.dl_attack === 2 ? 'benign';*/
+
+
+                        $('#cnnResult').text('CNN Prediction: ' + cnnAttack);
+                        //$('#dlResult').text('Deep Learning Prediction: ' + dlAttack);
+
+                        // Show the results section
+                        $('#result').show();
+                    },
+                    error: function(err) {
+                        // Handle error and show error message
+                        $('#cnnResult').text('Error occurred: ' + err.responseJSON.error);
+                        $('#dlResult').text('');
+
+                        // Show the results section
+                        $('#result').show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
